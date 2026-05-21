@@ -1,0 +1,40 @@
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+vendor/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+
+# Data files (не коммитим большие данные)
+data/samples/*.pcap
+data/output/*.ndjson
+data/output/*.parquet
+data/output/*.png
+data/output/*.html
+
+# Env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

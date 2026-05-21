@@ -1,0 +1,12 @@
+polars==0.20.0
+duckdb==0.10.0
+pyarrow==14.0.0
+plotly==5.18.0
+matplotlib==3.8.0
+pandas==2.1.0
+streamlit==1.29.0
+nats-py==2.6.0
+python-dotenv==1.0.0
+pytest==7.4.3
+pyshark==0.6
+scapy==2.5.0
