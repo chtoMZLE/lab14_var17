@@ -1,6 +1,8 @@
 from scapy.all import *
 import random
 
+random.seed(42)  # воспроизводимые данные
+
 packets = []
 protocols = ["TCP", "UDP", "ICMP"]
 src_ips = [f"192.168.1.{i}" for i in range(1, 20)]
@@ -16,9 +18,9 @@ for i in range(500):
     proto = random.choice(protocols)
 
     if proto == "TCP":
-        pkt = IP(src=src, dst=dst) / TCP(sport=sport, dport=dport) / Raw(b"X" * size)
+        pkt = IP(src=src, dst=dst, len=size) / TCP(sport=sport, dport=dport) / Raw(b"X" * 10)
     elif proto == "UDP":
-        pkt = IP(src=src, dst=dst) / UDP(sport=sport, dport=dport) / Raw(b"X" * size)
+        pkt = IP(src=src, dst=dst, len=size) / UDP(sport=sport, dport=dport) / Raw(b"X" * 10)
     else:
         pkt = IP(src=src, dst=dst) / ICMP()
 

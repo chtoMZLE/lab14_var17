@@ -189,7 +189,10 @@ func main() {
 		log.Fatalf("[COLLECTOR] не удалось создать директорию %s: %v", outputDir, err)
 	}
 
-	files, _ := filepath.Glob(filepath.Join(pcapDir, "*.pcap"))
+	files, err := filepath.Glob(filepath.Join(pcapDir, "*.pcap"))
+	if err != nil {
+		log.Fatalf("[COLLECTOR] ошибка поиска файлов: %v", err)
+	}
 	if len(files) == 0 {
 		log.Fatal("[COLLECTOR] нет .pcap файлов в директории")
 	}
@@ -229,10 +232,9 @@ func main() {
 		select {
 		case <-sig:
 			log.Println("[COLLECTOR] получен сигнал завершения")
-			wg.Wait()
+			<-done // ждём, пока потребитель вычитает ch и закроет done
 		case <-done:
 		}
-		<-done
 
 		log.Printf("[COLLECTOR] собрано %d пакетов, запускаю Arrow-сервер", len(allPackets))
 		ServeArrow(allPackets, arrowPort)
@@ -264,11 +266,9 @@ func main() {
 		select {
 		case <-sig:
 			log.Println("[COLLECTOR] получен сигнал завершения, дожидаюсь записи буфера...")
-			wg.Wait()
-			close(ch)
+			<-windowDone // ждём, пока горутина закроет ch и окна запишутся
 		case <-windowDone:
 		}
-		<-windowDone
 		log.Println("[COLLECTOR] оконная агрегация завершена корректно")
 		return
 	}
@@ -291,10 +291,8 @@ func main() {
 	select {
 	case <-sig:
 		log.Println("[COLLECTOR] получен сигнал завершения, дожидаюсь записи буфера...")
-		wg.Wait()
-		close(ch)
+		<-done // ждём, пока writeWorker вычитает буфер и закроет done
 	case <-done:
 	}
-	<-done
 	log.Println("[COLLECTOR] завершено корректно")
 }

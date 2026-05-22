@@ -22,7 +22,8 @@ def load_data() -> pl.DataFrame:
 
     dfs = []
     for f in files:
-        records = [json.loads(line) for line in open(f, encoding="utf-8")]
+        with open(f, encoding="utf-8") as fp:
+            records = [json.loads(line) for line in fp]
         dfs.append(pl.DataFrame(records))
 
     df = pl.concat(dfs)

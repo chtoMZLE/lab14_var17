@@ -10,9 +10,8 @@ OUTPUT_DIR = os.getenv("OUTPUT_DIR", "./data/output")
 PARQUET = f"{OUTPUT_DIR}/packets.parquet"
 
 
-def plot_protocol_distribution():
+def plot_protocol_distribution(conn: duckdb.DuckDBPyConnection):
     """График 1: Распределение пакетов по протоколам (pie + bar)."""
-    conn = duckdb.connect()
     df = conn.execute(f"""
         SELECT protocol, COUNT(*) as count, SUM(packet_size) as total_bytes
         FROM '{PARQUET}'
@@ -33,9 +32,8 @@ def plot_protocol_distribution():
     print(f"График 1 сохранён: chart_protocols.png")
 
 
-def plot_traffic_timeline():
+def plot_traffic_timeline(conn: duckdb.DuckDBPyConnection):
     """График 2: Временной ряд трафика (пакеты в минуту)."""
-    conn = duckdb.connect()
     df = conn.execute(f"""
         SELECT
             DATE_TRUNC('minute', CAST(timestamp AS TIMESTAMP)) as minute,
@@ -55,9 +53,8 @@ def plot_traffic_timeline():
     print(f"График 2 сохранён: chart_timeline.png")
 
 
-def plot_top_ips_heatmap():
+def plot_top_ips_heatmap(conn: duckdb.DuckDBPyConnection):
     """График 3: Тепловая карта src_ip → dst_port (аномалии)."""
-    conn = duckdb.connect()
     df = conn.execute(f"""
         SELECT src_ip, dst_port, COUNT(*) as count
         FROM '{PARQUET}'
@@ -87,9 +84,8 @@ def plot_top_ips_heatmap():
     print(f"График 3 сохранён: chart_heatmap.png")
 
 
-def plot_packet_size_distribution():
+def plot_packet_size_distribution(conn: duckdb.DuckDBPyConnection):
     """График 4: Гистограмма размеров пакетов по протоколам."""
-    conn = duckdb.connect()
     df = conn.execute(f"""
         SELECT protocol, packet_size FROM '{PARQUET}'
         WHERE protocol IN ('TCP', 'UDP', 'ICMP')
@@ -106,8 +102,10 @@ def plot_packet_size_distribution():
 
 
 if __name__ == "__main__":
-    plot_protocol_distribution()
-    plot_traffic_timeline()
-    plot_top_ips_heatmap()
-    plot_packet_size_distribution()
+    conn = duckdb.connect()
+    plot_protocol_distribution(conn)
+    plot_traffic_timeline(conn)
+    plot_top_ips_heatmap(conn)
+    plot_packet_size_distribution(conn)
+    conn.close()
     print(f"\nВсе графики сохранены в {OUTPUT_DIR}/")

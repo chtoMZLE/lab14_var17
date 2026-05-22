@@ -48,10 +48,11 @@ func buildArrowBatch(packets []PacketRecord) arrow.Record {
 }
 
 func ServeArrow(packets []PacketRecord, port string) {
-	http.HandleFunc("/packets", func(w http.ResponseWriter, r *http.Request) {
-		batch := buildArrowBatch(packets)
-		defer batch.Release()
+	// batch строится один раз — не пересоздаётся на каждый запрос
+	batch := buildArrowBatch(packets)
+	defer batch.Release()
 
+	http.HandleFunc("/packets", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/vnd.apache.arrow.stream")
 		writer := ipc.NewWriter(w, ipc.WithSchema(batch.Schema()))
 		defer writer.Close()

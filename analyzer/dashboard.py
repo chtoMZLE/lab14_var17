@@ -4,6 +4,7 @@ import duckdb
 import plotly.express as px
 import plotly.graph_objects as go
 import os
+import re
 import time
 from pathlib import Path
 from dotenv import load_dotenv
@@ -47,10 +48,11 @@ ip_filter = st.sidebar.text_input("IP-адрес источника (пусто 
 proto_list = ", ".join(f"'{p}'" for p in selected_protocols) if selected_protocols else "''"
 where_clauses = [f"protocol IN ({proto_list})"]
 if port_filter.isdigit():
-    where_clauses.append(f"dst_port = {port_filter}")
-if ip_filter:
-    # Используем параметризованный запрос для безопасности
-    where_clauses.append(f"src_ip LIKE '%{ip_filter.replace('%', '')}%'")
+    where_clauses.append(f"dst_port = {int(port_filter)}")
+# Разрешаем только символы допустимые в IP-адресе — защита от SQL-инъекции
+ip_safe = re.sub(r"[^0-9a-fA-F.:]", "", ip_filter)
+if ip_safe:
+    where_clauses.append(f"src_ip LIKE '%{ip_safe}%'")
 where = " AND ".join(where_clauses)
 
 # Графики
