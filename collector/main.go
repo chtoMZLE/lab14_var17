@@ -170,6 +170,7 @@ func writeWindowWorker(ch <-chan WindowAgg, outputDir string, done chan struct{}
 func main() {
 	windowed := flag.Bool("windowed", false, "запустить оконную агрегацию вместо записи сырых пакетов")
 	serveArrow := flag.Bool("serve-arrow", false, "запустить Arrow HTTP сервер")
+	natsMode := flag.Bool("nats", false, "публиковать пакеты в NATS (требует запущенного NATS-сервера)")
 	flag.Parse()
 
 	pcapDir := os.Getenv("PCAP_DIR")
@@ -201,6 +202,11 @@ func main() {
 	ch := make(chan PacketRecord, 1000)
 	done := make(chan struct{})
 	var wg sync.WaitGroup
+
+	if *natsMode {
+		RunNATSProducer(pcapDir)
+		return
+	}
 
 	if *serveArrow {
 		// Сначала собираем все пакеты, потом запускаем сервер
