@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pcap-collector-service
+  namespace: lab14
+  labels:
+    app: pcap-collector
+spec:
+  selector:
+    app: pcap-collector
+  ports:
+    - name: arrow-http
+      protocol: TCP
+      port: 8815
+      targetPort: 8815
+  type: ClusterIP

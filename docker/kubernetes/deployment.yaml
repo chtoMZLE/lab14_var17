@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pcap-collector
+  namespace: lab14
+  labels:
+    app: pcap-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pcap-collector
+  template:
+    metadata:
+      labels:
+        app: pcap-collector
+    spec:
+      containers:
+        - name: collector
+          image: pcap-collector:latest
+          imagePullPolicy: IfNotPresent
+          args: ["--serve-arrow"]
+          ports:
+            - name: arrow-http
+              containerPort: 8815
+              protocol: TCP
+          env:
+            - name: PCAP_DIR
+              value: "/data/samples"
+            - name: OUTPUT_DIR
+              value: "/data/output"
+            - name: ARROW_SERVER_PORT
+              value: "8815"
+            - name: NATS_URL
+              value: "nats://nats-service.lab14.svc.cluster.local:4222"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8815
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8815
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          volumeMounts:
+            - name: pcap-data
+              mountPath: /data
+      volumes:
+        - name: pcap-data
+          emptyDir: {}

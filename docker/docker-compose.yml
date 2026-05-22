@@ -1,0 +1,41 @@
+version: "3.8"
+
+services:
+  # ── NATS message broker ────────────────────────────────────────────────────
+  nats:
+    image: nats:2.10-alpine
+    container_name: lab14-nats
+    ports:
+      - "4222:4222"   # клиентский порт
+      - "8222:8222"   # HTTP мониторинг
+    command: ["--http_port", "8222", "--name", "lab14-nats"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8222/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ── Go PCAP-коллектор ──────────────────────────────────────────────────────
+  collector:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: lab14-collector
+    environment:
+      PCAP_DIR: /data/samples
+      OUTPUT_DIR: /data/output
+      NATS_URL: nats://nats:4222
+      ARROW_SERVER_PORT: "8815"
+    volumes:
+      - ../data:/data
+    ports:
+      - "8815:8815"   # Arrow HTTP endpoint
+    depends_on:
+      nats:
+        condition: service_healthy
+    restart: on-failure
+    command: ["--serve-arrow"]
+
+volumes:
+  data:
