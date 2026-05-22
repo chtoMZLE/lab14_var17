@@ -36,11 +36,12 @@ PCAP-файлы
 ```
 lab14-var17/
 ├── collector/
-│   ├── main.go              # PCAP-парсер: горутины, флаги, graceful shutdown
-│   ├── window.go            # Tumbling window агрегация (60с)
-│   ├── arrow_server.go      # Arrow IPC HTTP сервер (GET /packets, GET /health)
-│   ├── nats_producer.go     # NATS-продюсер (публикует в "pcap.packets")
-│   └── main_test.go         # Юнит-тесты (4 теста, все PASS)
+│   ├── main.go                # PCAP-парсер: горутины, флаги, graceful shutdown
+│   ├── window.go              # Tumbling window агрегация (60с)
+│   ├── arrow_server.go        # Arrow IPC HTTP сервер (GET /packets, GET /health)
+│   ├── nats_producer.go       # NATS-продюсер (публикует в "pcap.packets")
+│   ├── etcd_coordinator.go    # etcd: lease, регистрация инстансов, шардирование файлов
+│   └── main_test.go           # Юнит-тесты (4 теста, все PASS)
 ├── analyzer/
 │   ├── main.py              # Polars + DuckDB анализ (задания базового уровня)
 │   ├── arrow_client.py      # Arrow IPC клиент + сравнение скорости Arrow vs JSON
@@ -65,7 +66,7 @@ lab14-var17/
 ├── data/
 │   ├── samples/             # PCAP-файлы и generate_test_pcap.py
 │   └── output/              # NDJSON, Parquet, PNG/HTML графики, бенчмарк
-├── go.mod                   # Go-зависимости (gopacket, arrow/v14, nats.go, uuid)
+├── go.mod                   # Go-зависимости (gopacket, arrow/v14, nats.go, uuid, etcd/client/v3)
 ├── requirements.txt         # Python-зависимости
 └── .env                     # NATS_URL, PCAP_DIR, OUTPUT_DIR, ARROW_SERVER_PORT
 ```
