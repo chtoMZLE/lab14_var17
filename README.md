@@ -1,4 +1,7 @@
-# Лабораторная работа №14, Вариант 17
+# Лабораторная работа №14, Вариант 17 (повышенная сложность)
+- Студент: Тараканова Мария Вадимовна
+- Группа: 221131
+  
 ## Анализ сетевого трафика — конвейер Go + Python
 
 ### Архитектура конвейера
@@ -98,17 +101,17 @@ go test ./collector/... -v
 
 ### Реализованные задания
 
-| Задание | Уровень | Файл | Описание |
-|---------|---------|------|----------|
-| 1 | Повышенный | collector/main.go | Параллельный парсер PCAP через горутины |
-| 2 | Повышенный | collector/window.go | Tumbling window агрегация (60с) |
-| 3 | Повышенный | collector/arrow_server.go | Apache Arrow IPC HTTP сервер |
-| 4 | Базовый | analyzer/main.py | Импорт NDJSON в Polars |
-| 5 | Базовый | analyzer/main.py | Очистка данных и валидация |
-| 6 | Базовый | analyzer/main.py | Агрегационный анализ |
-| 7 | Базовый | analyzer/main.py | Сохранение в Parquet |
-| 8 | Повышенный | analyzer/main.py + dashboard.py | DuckDB анализ + Streamlit дашборд |
-| 9 | Базовый | analyzer/visualize.py | 4 интерактивных графика |
+| Задание | Файл | Описание |
+|---------|------|----------|
+| 1 | collector/main.go | Параллельный парсер PCAP через горутины |
+| 2 | collector/window.go | Tumbling window агрегация (60с) |
+| 3 | collector/arrow_server.go | Apache Arrow IPC HTTP сервер |
+| 4 | analyzer/main.py | Импорт NDJSON в Polars |
+| 5 | analyzer/main.py | Очистка данных и валидация |
+| 6 | analyzer/main.py | Агрегационный анализ |
+| 7 | analyzer/main.py | Сохранение в Parquet |
+| 8 | analyzer/main.py + dashboard.py | DuckDB анализ + Streamlit дашборд |
+| 9 | analyzer/visualize.py | 4 интерактивных графика |
 
 ### Примечания
 
