@@ -168,7 +168,7 @@ go run ./collector/... --nats
 python analyzer/nats_consumer.py
 ```
 
-### 9. Бенчмарк Go vs Python asyncio (задание 6)
+### 10. Бенчмарк Go vs Python asyncio (задание 6)
 
 ```bash
 python analyzer/benchmark.py
@@ -176,7 +176,7 @@ python analyzer/benchmark.py
 # → data/output/benchmark_report.json
 ```
 
-### 10. Визуализация (задание 9)
+### 11. Визуализация (задание 9)
 
 ```bash
 python analyzer/visualize.py
@@ -186,14 +186,14 @@ python analyzer/visualize.py
 # → data/output/chart_sizes.png      (гистограмма размеров)
 ```
 
-### 11. Streamlit дашборд (задание 8)
+### 12. Streamlit дашборд (задание 8)
 
 ```bash
 streamlit run analyzer/dashboard.py
 # Открыть: http://localhost:8501
 ```
 
-### 12. Kubernetes (задание 5)
+### 13. Kubernetes (задание 5)
 
 ```bash
 # Собрать Docker-образ
@@ -210,13 +210,14 @@ kubectl -n lab14 get pods
 kubectl -n lab14 get hpa
 ```
 
-### 13. Docker Compose (NATS + collector)
+### 14. Docker Compose (etcd + NATS + collector)
 
 ```bash
 docker compose -f docker/docker-compose.yml up
+# Поднимает: etcd (координатор шардов) + NATS (стриминг) + collector (Arrow HTTP)
 ```
 
-### 14. Тесты
+### 15. Тесты
 
 ```bash
 go test ./collector/... -v
@@ -266,7 +267,7 @@ go test ./collector/... -v
 --serve-arrow            Arrow IPC HTTP сервер на :8815
 --nats                   Публикация пакетов в NATS (subject: pcap.packets)
 --etcd                   Включить etcd-координацию шардов
---etcd-endpoints string  Адреса etcd через запятую (по умолчанию: localhost:2379)
+--etcd-endpoints string  Адреса etcd через запятую (по умолчанию: env ETCD_ENDPOINTS или localhost:2379)
 ```
 
 ---
@@ -280,6 +281,7 @@ go test ./collector/... -v
 | `OUTPUT_DIR` | `./data/output` | Директория для результатов |
 | `WINDOW_SIZE_SECONDS` | `300` | Размер скользящего окна (Python консьюмер) |
 | `ARROW_SERVER_PORT` | `8815` | Порт Arrow HTTP сервера |
+| `ETCD_ENDPOINTS` | `localhost:2379` | Адреса etcd (используется флагом `--etcd`) |
 
 ---
 
