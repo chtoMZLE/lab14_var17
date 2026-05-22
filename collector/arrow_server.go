@@ -56,7 +56,9 @@ func ServeArrow(packets []PacketRecord, port string) {
 		w.Header().Set("Content-Type", "application/vnd.apache.arrow.stream")
 		writer := ipc.NewWriter(w, ipc.WithSchema(batch.Schema()))
 		defer writer.Close()
-		writer.Write(batch)
+		if err := writer.Write(batch); err != nil {
+			log.Printf("[ARROW-SERVER] ошибка записи batch: %v", err)
+		}
 	})
 
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {

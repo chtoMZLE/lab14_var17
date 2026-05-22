@@ -121,11 +121,16 @@ func writeWorker(ch <-chan PacketRecord, outputDir string, done chan struct{}) {
 			return
 		}
 		enc := json.NewEncoder(f)
+		written := 0
 		for _, rec := range batch {
-			enc.Encode(rec)
+			if err := enc.Encode(rec); err != nil {
+				log.Printf("[WRITER] ошибка записи пакета: %v", err)
+			} else {
+				written++
+			}
 		}
 		f.Close()
-		log.Printf("[WRITER] записано %d пакетов в %s", len(batch), filename)
+		log.Printf("[WRITER] записано %d/%d пакетов в %s", written, len(batch), filename)
 		batch = batch[:0]
 	}
 
