@@ -164,12 +164,16 @@ func writeWindowWorker(ch <-chan WindowAgg, outputDir string, done chan struct{}
 	defer f.Close()
 
 	enc := json.NewEncoder(f)
-	count := 0
+	written, total := 0, 0
 	for agg := range ch {
-		enc.Encode(agg)
-		count++
+		total++
+		if err := enc.Encode(agg); err != nil {
+			log.Printf("[WINDOW-WRITER] ошибка записи окна: %v", err)
+		} else {
+			written++
+		}
 	}
-	log.Printf("[WINDOW-WRITER] записано %d окон в %s", count, filename)
+	log.Printf("[WINDOW-WRITER] записано %d/%d окон в %s", written, total, filename)
 	close(done)
 }
 
@@ -178,7 +182,11 @@ func main() {
 	serveArrow := flag.Bool("serve-arrow", false, "запустить Arrow HTTP сервер")
 	natsMode := flag.Bool("nats", false, "публиковать пакеты в NATS (требует запущенного NATS-сервера)")
 	etcdMode := flag.Bool("etcd", false, "включить etcd-координацию для распределения шардов между инстансами")
-	etcdEndpoints := flag.String("etcd-endpoints", "localhost:2379", "адреса etcd через запятую")
+	etcdEndpointsDefault := os.Getenv("ETCD_ENDPOINTS")
+	if etcdEndpointsDefault == "" {
+		etcdEndpointsDefault = "localhost:2379"
+	}
+	etcdEndpoints := flag.String("etcd-endpoints", etcdEndpointsDefault, "адреса etcd через запятую (или env ETCD_ENDPOINTS)")
 	flag.Parse()
 
 	pcapDir := os.Getenv("PCAP_DIR")
@@ -224,6 +232,10 @@ func main() {
 				defer shardCancel()
 				if shard, shardErr := coord.GetShard(shardCtx, files); shardErr == nil {
 					files = shard
+					if len(files) == 0 {
+						log.Println("[ETCD] этому инстансу не назначено файлов — завершение")
+						return
+					}
 				}
 			}
 		}

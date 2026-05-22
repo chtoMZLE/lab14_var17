@@ -59,7 +59,7 @@ services:
       etcd:
         condition: service_healthy
     restart: on-failure
-    command: ["--serve-arrow"]
+    command: ["--serve-arrow", "--etcd"]
 
 volumes:
   data:
