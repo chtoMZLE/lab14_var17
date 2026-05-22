@@ -136,7 +136,24 @@ curl http://localhost:8815/health        # → OK
 python analyzer/arrow_client.py         # → Arrow vs JSON сравнение
 ```
 
-### 8. NATS-стриминг + скользящее окно (задание 7)
+### 8. Распределённый сборщик с etcd-координацией (задание 1)
+
+```bash
+# Терминал 1 — запустить etcd
+docker run -p 2379:2379 -p 2380:2380 quay.io/coreos/etcd:v3.5.11 \
+  etcd --advertise-client-urls http://0.0.0.0:2379 \
+       --listen-client-urls http://0.0.0.0:2379
+
+# Терминал 2 — инстанс сборщика A (получит шард файлов)
+go run ./collector/... --etcd --etcd-endpoints localhost:2379
+
+# Терминал 3 — инстанс сборщика B (получит другой шард)
+go run ./collector/... --etcd --etcd-endpoints localhost:2379
+# Каждый инстанс регистрируется в etcd, получает lease и
+# обрабатывает только назначенные ему файлы (shard = i % N == myIndex)
+```
+
+### 9. NATS-стриминг + скользящее окно (задание 7)
 
 ```bash
 # Терминал 1 — NATS broker
@@ -230,7 +247,7 @@ go test ./collector/... -v
 
 | № | Файл(ы) | Описание |
 |---|---------|----------|
-| 1 | collector/main.go | Параллельный PCAP-парсер через горутины + WaitGroup |
+| 1 | collector/main.go, collector/etcd_coordinator.go | Распределённый PCAP-парсер: горутины + WaitGroup + etcd-координация (lease, регистрация инстансов, распределение шардов файлов) |
 | 2 | collector/window.go | Tumbling window агрегация (60с окна, 15 метрик) |
 | 3 | collector/arrow_server.go, analyzer/arrow_client.py | Apache Arrow IPC HTTP: Go-сервер отдаёт RecordBatch, Python-клиент читает в Polars; сравнение Arrow vs JSON |
 | 4 | validator/src/lib.rs, analyzer/validate_integration.py | Rust-библиотека валидации пакетов через PyO3; проверка IP, портов (0–65535), TTL (0–255), размера пакета |
@@ -244,9 +261,11 @@ go test ./collector/... -v
 ## Флаги Go-сборщика
 
 ```
---windowed      Tumbling window агрегация → windows_*.ndjson
---serve-arrow   Arrow IPC HTTP сервер на :8815
---nats          Публикация пакетов в NATS (subject: pcap.packets)
+--windowed               Tumbling window агрегация → windows_*.ndjson
+--serve-arrow            Arrow IPC HTTP сервер на :8815
+--nats                   Публикация пакетов в NATS (subject: pcap.packets)
+--etcd                   Включить etcd-координацию шардов
+--etcd-endpoints string  Адреса etcd через запятую (по умолчанию: localhost:2379)
 ```
 
 ---

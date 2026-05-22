@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -171,6 +172,8 @@ func main() {
 	windowed := flag.Bool("windowed", false, "запустить оконную агрегацию вместо записи сырых пакетов")
 	serveArrow := flag.Bool("serve-arrow", false, "запустить Arrow HTTP сервер")
 	natsMode := flag.Bool("nats", false, "публиковать пакеты в NATS (требует запущенного NATS-сервера)")
+	etcdMode := flag.Bool("etcd", false, "включить etcd-координацию для распределения шардов между инстансами")
+	etcdEndpoints := flag.String("etcd-endpoints", "localhost:2379", "адреса etcd через запятую")
 	flag.Parse()
 
 	pcapDir := os.Getenv("PCAP_DIR")
@@ -198,6 +201,28 @@ func main() {
 		log.Fatal("[COLLECTOR] нет .pcap файлов в директории")
 	}
 	log.Printf("[COLLECTOR] найдено %d PCAP-файлов", len(files))
+
+	// Etcd-координация: регистрируем инстанс и получаем назначенный шард файлов.
+	if *etcdMode {
+		endpoints := strings.Split(*etcdEndpoints, ",")
+		coord, coordErr := NewEtcdCoordinator(endpoints)
+		if coordErr != nil {
+			log.Printf("[ETCD] не удалось подключиться (%v) — обрабатываю все файлы", coordErr)
+		} else {
+			defer coord.Close()
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if regErr := coord.Register(ctx); regErr != nil {
+				log.Printf("[ETCD] ошибка регистрации (%v) — обрабатываю все файлы", regErr)
+			} else {
+				shardCtx, shardCancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer shardCancel()
+				if shard, shardErr := coord.GetShard(shardCtx, files); shardErr == nil {
+					files = shard
+				}
+			}
+		}
+	}
 
 	ch := make(chan PacketRecord, 1000)
 	done := make(chan struct{})
